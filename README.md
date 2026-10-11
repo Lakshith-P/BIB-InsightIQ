@@ -6,6 +6,7 @@ Built by **TEAM BIB (Biryani Intelligence Bureau)** for the **HacXLerate Smart C
 
 ![BIB InsightIQ landing page](docs/screenshots/landing.png)
 
+
 ---
 
 ## 🎯 The Problem
