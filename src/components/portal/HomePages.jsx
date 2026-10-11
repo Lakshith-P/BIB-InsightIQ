@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BandBadge, EmptyState, SectionTitle, StatCard } from "@/components/widgets";
+import { CampusInsights } from "@/components/portal/CampusInsights";
 import { PageTitle } from "@/components/portal/PortalShell";
 import { pct } from "@/components/portal/StudentTable";
 import { BAND_ORDER, byAttention, isAtRisk, lowAttendance } from "@/lib/campus-derive";
@@ -310,6 +311,7 @@ function FacultyHome() {
           </Button>
         </div>
       </div>
+      <CampusInsights rows={rows} />
     </div>
   );
 }
@@ -329,6 +331,11 @@ function AdminHome() {
     };
   });
   const maxBand = Math.max(1, ...Object.values(summary.byBand));
+  const segments = [
+    ...rows.reduce((m, r) => m.set(r.segment, (m.get(r.segment) ?? 0) + 1), new Map()),
+  ]
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count);
   return (
     <div>
       <PageTitle title={`Welcome, ${first}`} sub="Home · campus overview" />
@@ -423,6 +430,23 @@ function AdminHome() {
           <FollowUps />
         </div>
         <div className={card}>
+          <SectionTitle sub="Groups with a shared next step">Student segments</SectionTitle>
+          {segments.length === 0 && (
+            <p className="text-sm text-muted-foreground">No students yet.</p>
+          )}
+          <ul className="space-y-1 text-sm">
+            {segments.map((g) => (
+              <li
+                key={g.name}
+                className="flex justify-between gap-3 border-t py-1.5 first:border-0"
+              >
+                <span>{g.name}</span>
+                <span className="font-medium">{g.count}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className={card}>
           <SectionTitle sub="By branch">Branches</SectionTitle>
           {branches.length === 0 && (
             <p className="text-sm text-muted-foreground">No students yet.</p>
@@ -451,6 +475,7 @@ function AdminHome() {
           )}
         </div>
       </div>
+      <CampusInsights rows={rows} />
       <div className="mt-6">
         <SectionTitle>Go to</SectionTitle>
         <QuickLinks

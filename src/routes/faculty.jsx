@@ -4,6 +4,7 @@ import { StatCard, SectionTitle, BandBadge, EmptyState } from "@/components/widg
 import { useAppState, addIntervention, updateInterventionStatus } from "@/lib/store";
 import { successScore, studentAttendancePct, crossSourceInsights } from "@/lib/scoring";
 import { academicRisk, placementRisk } from "@/lib/risk-flags";
+import { segmentOf } from "@/lib/student-extras";
 import { MENTORS } from "@/lib/seed";
 import { useMemo, useState } from "react";
 export const Route = createFileRoute("/faculty")({
@@ -45,6 +46,7 @@ function Faculty() {
   const [bandFilter, setBandFilter] = useState("all");
   const [acadFilter, setAcadFilter] = useState("all");
   const [placeFilter, setPlaceFilter] = useState("all");
+  const [segFilter, setSegFilter] = useState("all");
   const [compare, setCompare] = useState([]);
   const [form, setForm] = useState(null);
   const assigned = students.filter((s) => s.mentorId === mentor);
@@ -55,10 +57,13 @@ function Faculty() {
         r: successScore(s),
         acad: academicRisk(s),
         place: placementRisk(s),
+        seg: segmentOf(s).name,
       })),
     [assigned],
   );
-  const visible = scored.filter(({ s, r, acad, place }) => {
+  const segNames = [...new Set(scored.map((x) => x.seg))].sort();
+  const visible = scored.filter(({ s, r, acad, place, seg }) => {
+    if (segFilter !== "all" && seg !== segFilter) return false;
     if (query && !`${s.name} ${s.id}`.toLowerCase().includes(query.toLowerCase())) return false;
     if (bandFilter !== "all" && r.band !== bandFilter) return false;
     if (acadFilter !== "all" && acad.level !== acadFilter) return false;
@@ -159,6 +164,16 @@ function Faculty() {
               <option key={l}>{l}</option>
             ))}
           </select>
+          <select
+            value={segFilter}
+            onChange={(e) => setSegFilter(e.target.value)}
+            className="rounded-md border bg-card px-3 py-1.5 text-sm"
+          >
+            <option value="all">Segment: all</option>
+            {segNames.map((n) => (
+              <option key={n}>{n}</option>
+            ))}
+          </select>
         </div>
         {visible.length === 0 ? (
           <EmptyState title="No students match" hint="Adjust the search or filters." />
@@ -175,12 +190,13 @@ function Faculty() {
                   <th>Band</th>
                   <th>Academic risk</th>
                   <th>Placement risk</th>
+                  <th>Segment</th>
                   <th>vs class avg</th>
                   <th></th>
                 </tr>
               </thead>
               <tbody>
-                {visible.map(({ s, r, acad, place }) => {
+                {visible.map(({ s, r, acad, place, seg }) => {
                   const att = studentAttendancePct(s);
                   const diff = classAvg !== null && r.score !== null ? r.score - classAvg : null;
                   return (
@@ -222,6 +238,7 @@ function Faculty() {
                       <td>
                         <FlagPill flag={place} />
                       </td>
+                      <td className="text-xs">{seg}</td>
                       <td
                         className={diff !== null && diff < 0 ? "text-destructive" : "text-success"}
                       >

@@ -14,7 +14,9 @@ export function StudentTable({ rows, showMentor = false, initialFilter = "" }) {
   const [band, setBand] = useState(initialFilter);
   const [branch, setBranch] = useState("");
   const [mentor, setMentor] = useState("");
+  const [segment, setSegment] = useState("");
   const branches = useMemo(() => [...new Set(rows.map((r) => r.branch))].sort(), [rows]);
+  const segments = useMemo(() => [...new Set(rows.map((r) => r.segment))].sort(), [rows]);
   const mentors = useMemo(() => {
     const m = new Map();
     for (const r of rows) if (r.mentorId) m.set(r.mentorId, r.mentorName || r.mentorEmail);
@@ -27,6 +29,7 @@ export function StudentTable({ rows, showMentor = false, initialFilter = "" }) {
         if (needle && !`${r.name} ${r.id} ${r.ownerEmail}`.toLowerCase().includes(needle))
           return false;
         if (branch && r.branch !== branch) return false;
+        if (segment && r.segment !== segment) return false;
         if (mentor === "none" && r.mentorId) return false;
         if (mentor && mentor !== "none" && r.mentorId !== mentor) return false;
         if (band === "nodata") return r.score === null;
@@ -36,7 +39,7 @@ export function StudentTable({ rows, showMentor = false, initialFilter = "" }) {
         return true;
       }),
     );
-  }, [rows, q, band, branch, mentor]);
+  }, [rows, q, band, branch, mentor, segment]);
   return (
     <div>
       <div className="mb-3 flex flex-wrap items-center gap-2">
@@ -78,6 +81,19 @@ export function StudentTable({ rows, showMentor = false, initialFilter = "" }) {
             ))}
           </select>
         )}
+        <select
+          value={segment}
+          onChange={(e) => setSegment(e.target.value)}
+          aria-label="Filter by segment"
+          className={selectClass}
+        >
+          <option value="">All segments</option>
+          {segments.map((n) => (
+            <option key={n} value={n}>
+              {n}
+            </option>
+          ))}
+        </select>
         {showMentor && (
           <select
             value={mentor}
@@ -109,6 +125,7 @@ export function StudentTable({ rows, showMentor = false, initialFilter = "" }) {
               <th>Attendance</th>
               <th>LMS</th>
               <th>Alerts</th>
+              <th>Segment</th>
               {showMentor && <th>Teacher</th>}
             </tr>
           </thead>
@@ -137,6 +154,7 @@ export function StudentTable({ rows, showMentor = false, initialFilter = "" }) {
                 </td>
                 <td>{pct(r.lms)}</td>
                 <td className={r.urgent ? "font-medium text-destructive" : ""}>{r.alerts}</td>
+                <td className="text-xs">{r.segment}</td>
                 {showMentor && (
                   <td className={r.mentorId ? "" : "text-muted-foreground"}>
                     {r.mentorName || "Not assigned"}
@@ -146,7 +164,7 @@ export function StudentTable({ rows, showMentor = false, initialFilter = "" }) {
             ))}
             {shown.length === 0 && (
               <tr>
-                <td colSpan={showMentor ? 8 : 7} className="p-6 text-center text-muted-foreground">
+                <td colSpan={showMentor ? 9 : 8} className="p-6 text-center text-muted-foreground">
                   No students match.
                 </td>
               </tr>

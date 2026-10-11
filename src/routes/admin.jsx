@@ -4,6 +4,7 @@ import { StatCard, SectionTitle, BandBadge, EmptyState } from "@/components/widg
 import { useAppState } from "@/lib/store";
 import { successScore, studentAttendancePct, lmsCompletion, componentScores } from "@/lib/scoring";
 import { academicRisk, placementRisk } from "@/lib/risk-flags";
+import { segmentCounts } from "@/lib/student-extras";
 import { riskBand } from "@/lib/types";
 import { useMemo, useState } from "react";
 import {
@@ -99,6 +100,7 @@ function Admin() {
     });
     return { academic, placement, heatmap };
   }, [filtered, branches, students]);
+  const segments = useMemo(() => segmentCounts(filtered), [filtered]);
   const quality = useMemo(() => {
     let missing = 0;
     const fields = filtered.flatMap((s) => Object.values(componentScores(s)));
@@ -294,6 +296,36 @@ function Admin() {
             </table>
           </div>
         </div>
+      </div>
+
+      <div className="mt-6 rounded-xl border bg-card p-4">
+        <SectionTitle sub="Rule-based groups, each with a suggested targeted action">
+          Student segments
+        </SectionTitle>
+        <ResponsiveContainer width="100%" height={Math.max(160, segments.length * 40)}>
+          <BarChart data={segments} layout="vertical" margin={{ left: 40 }}>
+            <XAxis type="number" allowDecimals={false} stroke="var(--muted-foreground)" />
+            <YAxis
+              type="category"
+              dataKey="name"
+              width={250}
+              tick={{ fontSize: 11 }}
+              stroke="var(--muted-foreground)"
+            />
+            <Tooltip
+              contentStyle={{ background: "var(--card)", border: "1px solid var(--border)" }}
+            />
+            <Bar dataKey="count" fill="var(--primary)" radius={[0, 4, 4, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+        <ul className="mt-3 grid gap-1 text-sm sm:grid-cols-2">
+          {segments.map((g) => (
+            <li key={g.name}>
+              <span className="font-medium">{g.name}</span> ({g.count}):{" "}
+              <span className="text-muted-foreground">{g.action}</span>
+            </li>
+          ))}
+        </ul>
       </div>
 
       <div className="mt-6 rounded-xl border bg-card p-4">

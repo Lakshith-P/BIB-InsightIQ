@@ -379,6 +379,17 @@ export function segmentOf(s) {
     action: "Maintain current performance and complete pending LMS work.",
   };
 }
+/** Count students per segment (largest first), with the suggested action for each. */
+export function segmentCounts(students) {
+  const map = new Map();
+  for (const s of students) {
+    const seg = segmentOf(s);
+    const entry = map.get(seg.name) ?? { name: seg.name, action: seg.action, count: 0 };
+    entry.count += 1;
+    map.set(seg.name, entry);
+  }
+  return [...map.values()].sort((a, b) => b.count - a.count);
+}
 export function notifications(s) {
   const out = [];
   for (const sub of s.subjects) {

@@ -1,6 +1,7 @@
 import { academicRisk, effectiveBand, placementRisk } from "./risk-flags";
 import { liveNotifications } from "./live-profile";
 import { lmsCompletion, studentAttendancePct, successScore } from "./scoring";
+import { segmentOf } from "./student-extras";
 import { studentSchema } from "./student-validation";
 
 // Turns the raw rows from the database into what the portal pages show: one row per student
@@ -32,6 +33,7 @@ export function buildRows(records, today) {
         lms: lmsCompletion(s),
         academicRisk: acad.level,
         placementRisk: place.level,
+        segment: segmentOf(s).name,
         alerts: alerts.length,
         urgent: alerts.filter((n) => n.tone === "danger").length,
         ownerId: rec.owner_id,
